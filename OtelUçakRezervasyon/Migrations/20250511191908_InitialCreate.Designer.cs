@@ -12,8 +12,8 @@ using OtelUçakRezervasyon.Data;
 namespace OtelUçakRezervasyon.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250328095342_FixAppUserModel")]
-    partial class FixAppUserModel
+    [Migration("20250511191908_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -207,10 +207,6 @@ namespace OtelUçakRezervasyon.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -271,6 +267,46 @@ namespace OtelUçakRezervasyon.Migrations
                     b.ToTable("Flights");
                 });
 
+            modelBuilder.Entity("OtelUçakRezervasyon.Models.FlightReservation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CustomerEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DepartureDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("FlightId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("UcakKisiSayisi")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppUserId");
+
+                    b.HasIndex("FlightId");
+
+                    b.ToTable("FlightsReservations");
+                });
+
             modelBuilder.Entity("OtelUçakRezervasyon.Models.Hotel", b =>
                 {
                     b.Property<int>("Id")
@@ -300,6 +336,44 @@ namespace OtelUçakRezervasyon.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Hotel");
+                });
+
+            modelBuilder.Entity("OtelUçakRezervasyon.Models.HotelReservation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CheckInDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CheckOutDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CustomerEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HotelId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OtelKisiSayisi")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HotelId");
+
+                    b.ToTable("HotelReservations");
                 });
 
             modelBuilder.Entity("OtelUçakRezervasyon.Models.Reservation", b =>
@@ -385,6 +459,36 @@ namespace OtelUçakRezervasyon.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("OtelUçakRezervasyon.Models.FlightReservation", b =>
+                {
+                    b.HasOne("OtelUçakRezervasyon.Models.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OtelUçakRezervasyon.Models.Flight", "Flight")
+                        .WithMany()
+                        .HasForeignKey("FlightId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Flight");
+                });
+
+            modelBuilder.Entity("OtelUçakRezervasyon.Models.HotelReservation", b =>
+                {
+                    b.HasOne("OtelUçakRezervasyon.Models.Hotel", "Hotel")
+                        .WithMany()
+                        .HasForeignKey("HotelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hotel");
                 });
 
             modelBuilder.Entity("OtelUçakRezervasyon.Models.Reservation", b =>
