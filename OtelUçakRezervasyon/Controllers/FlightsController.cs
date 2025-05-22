@@ -19,6 +19,7 @@ namespace OtelUçakRezervasyon.Controllers
             _context = context;
         }
 
+
         [HttpGet]
 
         public IActionResult GetAll()
