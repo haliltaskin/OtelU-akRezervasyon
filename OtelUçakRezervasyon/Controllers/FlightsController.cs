@@ -38,7 +38,23 @@ namespace OtelUçakRezervasyon.Controllers
                 return NotFound();
             return Ok(flights.ToFlightsDto());
         }
+        [HttpGet("search")]
+        public IActionResult Search([FromQuery] string? departureCity, [FromQuery] string? arrivalCity)
+        {
+            var query = _context.Flights.AsQueryable();
 
+            if (!string.IsNullOrWhiteSpace(departureCity))
+                query = query.Where(f => f.DepartureCity.ToLower() == departureCity.ToLower());
+
+            if (!string.IsNullOrWhiteSpace(arrivalCity))
+                query = query.Where(f => f.ArrivalCity.ToLower() == arrivalCity.ToLower());
+
+            var results = query.Select(f => f.ToFlightsDto()).ToList();
+
+            return Ok(results);
+        }
+
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public IActionResult Create([FromBody] CreateFlightsDto flightDto)
         {
@@ -49,6 +65,7 @@ namespace OtelUçakRezervasyon.Controllers
         }
 
         [HttpPut]
+        [Authorize(Roles = "Admin")]
         [Route("{id}")]
         public IActionResult Update([FromRoute] int id, [FromBody] UpdateFlightsDto updateDto)
         {
@@ -72,6 +89,7 @@ namespace OtelUçakRezervasyon.Controllers
 
         [HttpDelete]
         [Route("{id}")]
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete([FromRoute] int id) 
         {
             var flightModel=_context.Flights.FirstOrDefault(x=>x.Id == id);

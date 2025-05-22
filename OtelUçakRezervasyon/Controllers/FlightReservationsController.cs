@@ -5,29 +5,51 @@ using OtelUçakRezervasyon.DTOS.Reservation;
 using OtelUçakRezervasyon.Models;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using OtelUçakRezervasyon.Services;
 
 namespace OtelUçakRezervasyon.Controllers
+    
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class FlightReservationsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public FlightReservationsController(ApplicationDbContext context)
+
+        public FlightReservationsController(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
+
+        private bool IsValidTcKimlikNo(string tc)
+        {
+            if (string.IsNullOrEmpty(tc) || tc.Length != 11 || !tc.All(char.IsDigit))
+                return false;
+
+            // İlk hane 0 olamaz
+            if (tc.StartsWith("0"))
+                return false;
+
+            return true;
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateFlightReservation(CreateFlightReservationDto dto)
         {
+            if (!IsValidTcKimlikNo(dto.TcKimlikNo))
+                return BadRequest("Geçersiz T.C. Kimlik Numarası. 11 haneli ve sadece rakamlardan oluşmalıdır.");
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
 
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized("Kullanıcı bilgisi alınamadı.");
 
-            var user = await _context.Users.FindAsync(userId);
+            var user = await _context.Users.FindAsync(int.Parse(userId));
             if (user == null)
                 return Unauthorized("Kullanıcı bulunamadı.");
 
@@ -38,12 +60,14 @@ namespace OtelUçakRezervasyon.Controllers
             var reservation = new FlightReservation
             {
                 FlightId = dto.FlightId,
-                AppUserId = user.Id.ToString(),
+                AppUserId = user.Id,
                 CustomerName = user.FullName,
                 CustomerEmail = user.Email,
                 DepartureDate = dto.DepartureDate,
                 UcakKisiSayisi = dto.UcakKisiSayisi,
-                TotalPrice = flight.Price * dto.UcakKisiSayisi
+                TotalPrice = flight.Price * dto.UcakKisiSayisi,
+                TcKimlikNo = dto.TcKimlikNo,
+                DogumTarihi = dto.DogumTarihi
             };
 
             flight.AvailableSeats -= dto.UcakKisiSayisi;
@@ -51,11 +75,31 @@ namespace OtelUçakRezervasyon.Controllers
             _context.FlightsReservations.Add(reservation);
             await _context.SaveChangesAsync();
 
-            return Ok(new
-            {
-                message = "Rezervasyon başarıyla oluşturuldu.",
-                reservation
-            });
+            var subject = "Uçuş Rezervasyonu Alındı";
+            var body = $"Sayın {user.FullName},<br/><br/>" +
+                       $"{flight.DepartureCity} → {flight.ArrivalCity} uçuşunuz için {dto.UcakKisiSayisi} kişilik rezervasyonunuz alınmıştır.<br/><br/>" +
+                       $"Tarih: {dto.DepartureDate:dd.MM.yyyy}";
+
+            await _emailService.SendEmailAsync(user.Email, subject, body);
+
+            return Ok("Rezervasyon başarıyla yapıldı ve e-posta gönderildi.");
+        }
+
+        [HttpGet("my")]
+        [Authorize]
+        public async Task<IActionResult> GetMyReservations()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(userId, out var parsedUserId))
+                return Unauthorized("Geçersiz kullanıcı bilgisi.");
+
+            var reservations = await _context.FlightsReservations
+                .Include(x => x.Flight)
+                .Where(x => x.AppUserId == parsedUserId)
+                .ToListAsync();
+
+            return Ok(reservations);
         }
     }
 

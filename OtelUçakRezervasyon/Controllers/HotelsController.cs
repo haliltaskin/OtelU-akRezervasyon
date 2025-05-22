@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using OtelUçakRezervasyon.Data;
 using OtelUçakRezervasyon.DTOS.Hotels;
 using OtelUçakRezervasyon.Mappers;
@@ -32,6 +33,8 @@ namespace OtelUçakRezervasyon.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+
         public IActionResult Create([FromBody] CreateHotelsDto hotelDto)
         {
             var hotelsModel=hotelDto.ToHotelCreateDto();
@@ -43,6 +46,8 @@ namespace OtelUçakRezervasyon.Controllers
 
         [HttpPut]
         [Route("{id}")]
+        [Authorize(Roles = "Admin")]
+
         public IActionResult Update([FromRoute] int id, [FromBody] UpdateHotelDto updateDto)
         {
             var hotelModel=_context.Hotel.FirstOrDefault(x=>x.Id==id);
@@ -63,6 +68,8 @@ namespace OtelUçakRezervasyon.Controllers
 
         [HttpDelete]
         [Route("{id}")]
+        [Authorize(Roles = "Admin")]
+
 
         public IActionResult Delete([FromRoute] int id) 
         {

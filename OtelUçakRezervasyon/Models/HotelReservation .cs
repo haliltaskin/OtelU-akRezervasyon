@@ -13,5 +13,8 @@
         public DateTime CheckOutDate { get; set; }
         public int OtelKisiSayisi { get; set; }
         public decimal TotalPrice { get; set; }
+
+        public string TcKimlikNo { get; set; }
+        public DateTime DogumTarihi { get; set; }
     }
 }

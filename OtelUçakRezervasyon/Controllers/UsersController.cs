@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using OtelUçakRezervasyon.DTOS;
 using OtelUçakRezervasyon.Models;
+using OtelUçakRezervasyon.Services;
 
 namespace OtelUçakRezervasyon.Controllers
 {
@@ -17,12 +18,16 @@ namespace OtelUçakRezervasyon.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _singInManager;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
-        public UsersController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration configuration)
+
+        public UsersController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IConfiguration configuration, IEmailService emailService)
         {
             _userManager = userManager;
             _singInManager = signInManager;
             _configuration = configuration;
+            _emailService = emailService;
+
         }
 
         [HttpPost("register")]
@@ -37,18 +42,29 @@ namespace OtelUçakRezervasyon.Controllers
             {
                 FullName = model.FullName,
                 Email = model.Email,
-                UserName = model.Email.Split('@')[0]
+                UserName = Guid.NewGuid().ToString() 
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, "Customer"); // Kullanıcıya Customer rolü ata
+                await _userManager.AddToRoleAsync(user, "Customer");
+
+                var subject = "Kayıt Başarılı - Rezervasyon Sistemine Hoş Geldiniz";
+                var body = $"<b>Merhaba {model.FullName},</b><br/><br/>" +
+                           $"Sistemimize başarıyla kayıt oldunuz.<br/>" +
+                           $"Giriş yaparak otel ve uçak rezervasyonlarınızı yönetebilirsiniz.<br/><br/>" +
+                           $"İyi günler dileriz.<br/><br/>Rezervasyon Ekibi";
+
+                await _emailService.SendEmailAsync(model.Email, subject, body);
+
                 return StatusCode(201);
             }
+
             return BadRequest(result.Errors);
         }
+
 
 
         [HttpPost("login")]
@@ -73,10 +89,14 @@ namespace OtelUçakRezervasyon.Controllers
         }
 
 
-        private object GenerateJWT(AppUser user)
+        private async Task<object> GenerateJWT(AppUser user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration.GetSection("AppSettings:Secret").Value ?? "");
+
+            // 🔽 Kullanıcının veritabanındaki rolünü al
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "Customer"; // Rol yoksa default: Customer
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -84,7 +104,7 @@ namespace OtelUçakRezervasyon.Controllers
                     new Claim[] {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName ?? ""),
-                new Claim(ClaimTypes.Role, "Admin") // Admin rolünü Claim olarak ekleyin
+                new Claim(ClaimTypes.Role, role) // 🔥 Gerçek rol buraya yazılıyor
                     }
                 ),
                 Expires = DateTime.UtcNow.AddDays(1),
@@ -94,6 +114,7 @@ namespace OtelUçakRezervasyon.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
 
     }
 }

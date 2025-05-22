@@ -12,8 +12,8 @@ using OtelUçakRezervasyon.Data;
 namespace OtelUçakRezervasyon.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250425153052_SecondMigration")]
-    partial class SecondMigration
+    [Migration("20250518142248_CountryCitySchema")]
+    partial class CountryCitySchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -230,6 +230,45 @@ namespace OtelUçakRezervasyon.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("OtelUçakRezervasyon.Models.City", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CountryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CountryId");
+
+                    b.ToTable("Cities");
+                });
+
+            modelBuilder.Entity("OtelUçakRezervasyon.Models.Country", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Countries");
+                });
+
             modelBuilder.Entity("OtelUçakRezervasyon.Models.Flight", b =>
                 {
                     b.Property<int>("Id")
@@ -275,6 +314,9 @@ namespace OtelUçakRezervasyon.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("AppUserId")
+                        .HasColumnType("int");
+
                     b.Property<string>("CustomerEmail")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -296,6 +338,8 @@ namespace OtelUçakRezervasyon.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AppUserId");
 
                     b.HasIndex("FlightId");
 
@@ -456,13 +500,32 @@ namespace OtelUçakRezervasyon.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("OtelUçakRezervasyon.Models.City", b =>
+                {
+                    b.HasOne("OtelUçakRezervasyon.Models.Country", "Country")
+                        .WithMany("Cities")
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Country");
+                });
+
             modelBuilder.Entity("OtelUçakRezervasyon.Models.FlightReservation", b =>
                 {
+                    b.HasOne("OtelUçakRezervasyon.Models.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("OtelUçakRezervasyon.Models.Flight", "Flight")
                         .WithMany()
                         .HasForeignKey("FlightId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("AppUser");
 
                     b.Navigation("Flight");
                 });
@@ -504,6 +567,11 @@ namespace OtelUçakRezervasyon.Migrations
             modelBuilder.Entity("OtelUçakRezervasyon.Models.AppUser", b =>
                 {
                     b.Navigation("Reservations");
+                });
+
+            modelBuilder.Entity("OtelUçakRezervasyon.Models.Country", b =>
+                {
+                    b.Navigation("Cities");
                 });
 
             modelBuilder.Entity("OtelUçakRezervasyon.Models.Flight", b =>

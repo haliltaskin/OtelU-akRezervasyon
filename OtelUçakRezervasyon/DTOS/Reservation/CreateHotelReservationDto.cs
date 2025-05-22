@@ -8,5 +8,7 @@
         public DateTime CheckInDate { get; set; }
         public DateTime CheckOutDate { get; set; }
         public int OtelKisiSayisi { get; set; }
+        public string TcKimlikNo { get; set; }
+        public DateTime DogumTarihi { get; set; }
     }
 }
