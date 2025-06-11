@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OtelUçakRezervasyon.Data;
 
@@ -11,9 +12,11 @@ using OtelUçakRezervasyon.Data;
 namespace OtelUçakRezervasyon.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250521172354_AddKimlikAndDogumTarihiToHotelReservation")]
+    partial class AddKimlikAndDogumTarihiToHotelReservation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -227,57 +230,6 @@ namespace OtelUçakRezervasyon.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.Cart", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Carts");
-                });
-
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.CartItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CartId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("FlightId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("HotelId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ItemType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CartId");
-
-                    b.ToTable("CartItems");
-                });
-
             modelBuilder.Entity("OtelUçakRezervasyon.Models.City", b =>
                 {
                     b.Property<int>("Id")
@@ -298,39 +250,6 @@ namespace OtelUçakRezervasyon.Migrations
                     b.HasIndex("CountryId");
 
                     b.ToTable("Cities");
-                });
-
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.ConfirmedReservation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ConfirmedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("FlightId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("HotelId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ItemType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ConfirmedReservations");
                 });
 
             modelBuilder.Entity("OtelUçakRezervasyon.Models.Country", b =>
@@ -453,10 +372,6 @@ namespace OtelUçakRezervasyon.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -464,64 +379,9 @@ namespace OtelUçakRezervasyon.Migrations
                     b.Property<decimal>("PricePerNight")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("StarRating")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.ToTable("Hotel");
-                });
-
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.HotelComment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AppUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CommentText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("HotelId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppUserId");
-
-                    b.HasIndex("HotelId");
-
-                    b.ToTable("HotelComments");
-                });
-
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.HotelImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("HotelId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HotelId");
-
-                    b.ToTable("HotelImage");
                 });
 
             modelBuilder.Entity("OtelUçakRezervasyon.Models.HotelReservation", b =>
@@ -603,40 +463,6 @@ namespace OtelUçakRezervasyon.Migrations
                     b.ToTable("Reservations");
                 });
 
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.Room", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Capacity")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("HotelId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsAvailable")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("RoomType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HotelId");
-
-                    b.ToTable("Rooms");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.HasOne("OtelUçakRezervasyon.Models.AppRole", null)
@@ -688,17 +514,6 @@ namespace OtelUçakRezervasyon.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.CartItem", b =>
-                {
-                    b.HasOne("OtelUçakRezervasyon.Models.Cart", "Cart")
-                        .WithMany("Items")
-                        .HasForeignKey("CartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Cart");
-                });
-
             modelBuilder.Entity("OtelUçakRezervasyon.Models.City", b =>
                 {
                     b.HasOne("OtelUçakRezervasyon.Models.Country", "Country")
@@ -727,36 +542,6 @@ namespace OtelUçakRezervasyon.Migrations
                     b.Navigation("AppUser");
 
                     b.Navigation("Flight");
-                });
-
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.HotelComment", b =>
-                {
-                    b.HasOne("OtelUçakRezervasyon.Models.AppUser", "AppUser")
-                        .WithMany()
-                        .HasForeignKey("AppUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OtelUçakRezervasyon.Models.Hotel", "Hotel")
-                        .WithMany()
-                        .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AppUser");
-
-                    b.Navigation("Hotel");
-                });
-
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.HotelImage", b =>
-                {
-                    b.HasOne("OtelUçakRezervasyon.Models.Hotel", "Hotel")
-                        .WithMany("Images")
-                        .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Hotel");
                 });
 
             modelBuilder.Entity("OtelUçakRezervasyon.Models.HotelReservation", b =>
@@ -793,25 +578,9 @@ namespace OtelUçakRezervasyon.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.Room", b =>
-                {
-                    b.HasOne("OtelUçakRezervasyon.Models.Hotel", "Hotel")
-                        .WithMany()
-                        .HasForeignKey("HotelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Hotel");
-                });
-
             modelBuilder.Entity("OtelUçakRezervasyon.Models.AppUser", b =>
                 {
                     b.Navigation("Reservations");
-                });
-
-            modelBuilder.Entity("OtelUçakRezervasyon.Models.Cart", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("OtelUçakRezervasyon.Models.Country", b =>
@@ -826,8 +595,6 @@ namespace OtelUçakRezervasyon.Migrations
 
             modelBuilder.Entity("OtelUçakRezervasyon.Models.Hotel", b =>
                 {
-                    b.Navigation("Images");
-
                     b.Navigation("Reservations");
                 });
 #pragma warning restore 612, 618

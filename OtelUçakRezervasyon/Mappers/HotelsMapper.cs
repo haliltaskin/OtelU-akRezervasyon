@@ -14,6 +14,10 @@ namespace OtelUçakRezervasyon.Mappers
                 Address = hotelModel.Address,
                 PricePerNight = hotelModel.PricePerNight,
                 AvailableRooms = hotelModel.AvailableRooms,
+                Description = hotelModel.Description,
+                StarRating = hotelModel.StarRating,
+                ImageUrls = hotelModel.Images?.Select(i => i.ImageUrl).ToList()
+
             };
         }
 
@@ -26,6 +30,8 @@ namespace OtelUçakRezervasyon.Mappers
                 Address = hotelDto.Address,
                 PricePerNight = hotelDto.PricePerNight,
                 AvailableRooms = hotelDto.AvailableRooms,
+                Description = hotelDto.Description,
+                StarRating = hotelDto.StarRating
             };
         }
     }

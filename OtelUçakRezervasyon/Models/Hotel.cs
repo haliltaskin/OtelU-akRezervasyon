@@ -9,7 +9,12 @@
         public decimal PricePerNight { get; set; }
         public int AvailableRooms { get; set; }
 
-        // Rezervasyonlar ile ilişki
+        public string Description { get; set; } 
+        public int StarRating { get; set; } 
+
+       
         public ICollection<Reservation> Reservations { get; set; }
+        public ICollection<HotelImage> Images { get; set; }
+
     }
 }
