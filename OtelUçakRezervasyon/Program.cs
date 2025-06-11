@@ -86,6 +86,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthentication();
+app.UseStaticFiles(); 
 
 app.UseAuthorization();
 
@@ -106,6 +107,7 @@ using (var scope = app.Services.CreateScope())
 
     var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "countries.json");
     await seeder.SeedFromJsonAsync(fullPath);
+
 }
 
 

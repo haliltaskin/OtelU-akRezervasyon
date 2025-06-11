@@ -33,16 +33,18 @@ namespace OtelUçakRezervasyon.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> CreateHotelReservation(CreateHotelReservationDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!IsValidTcKimlikNo(dto.TcKimlikNo))
-                return BadRequest("Geçersiz T.C. Kimlik Numarası. 11 haneli ve sadece rakamlardan oluşmalıdır.");
-
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized("Kullanıcı bilgisi alınamadı.");
 
-            var user = await _context.Users.FindAsync(int.Parse(userId));
+            if (!IsValidTcKimlikNo(dto.TcKimlikNo))
+                return BadRequest("Geçersiz T.C. Kimlik Numarası. 11 haneli ve sadece rakamlardan oluşmalıdır.");
+            int parsedUserId = int.Parse(userId);
+
+            var user = await _context.Users.FindAsync(parsedUserId);
             if (user == null)
                 return Unauthorized("Kullanıcı bulunamadı.");
 
@@ -54,26 +56,33 @@ namespace OtelUçakRezervasyon.Controllers
             if (gunSayisi < 1)
                 return BadRequest("Geçerli tarih aralığı giriniz.");
 
-            var reservation = new HotelReservation
+            var cart = _context.Carts
+                .Include(c => c.Items)
+                .FirstOrDefault(c => c.UserId == userId);
+
+            if (cart == null)
+            {
+                cart = new Cart
+                {
+                    UserId = userId,
+                    Items = new List<CartItem>()
+                };
+                _context.Carts.Add(cart);
+            }
+
+            // Otel sepete ekleniyor
+            cart.Items.Add(new CartItem
             {
                 HotelId = dto.HotelId,
-                CustomerName = dto.CustomerName,
-                CustomerEmail = dto.CustomerEmail,
-                CheckInDate = dto.CheckInDate,
-                CheckOutDate = dto.CheckOutDate,
-                OtelKisiSayisi = dto.OtelKisiSayisi,
-                TotalPrice = hotel.PricePerNight * gunSayisi * dto.OtelKisiSayisi,
-                 TcKimlikNo = dto.TcKimlikNo,
-                DogumTarihi = dto.DogumTarihi
-            };
+                ItemType = "Hotel",
+                Price = hotel.PricePerNight * gunSayisi * dto.OtelKisiSayisi
+            });
 
-            hotel.AvailableRooms -= 1;
-
-            _context.HotelReservations.Add(reservation);
             await _context.SaveChangesAsync();
-
-            return Ok(reservation);
+            return Ok("Otel rezervasyonu sepete eklendi.");
         }
+
+
 
         [HttpGet("my")]
         [Authorize]

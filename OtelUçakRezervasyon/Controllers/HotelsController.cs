@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using OtelUçakRezervasyon.Data;
 using OtelUçakRezervasyon.DTOS.Hotels;
 using OtelUçakRezervasyon.Mappers;
+using OtelUçakRezervasyon.Models;
 
 namespace OtelUçakRezervasyon.Controllers
 {
@@ -23,6 +24,7 @@ namespace OtelUçakRezervasyon.Controllers
                 .Select(s => s.ToHotelsDto());
             return Ok(hotels);
         }
+
         [HttpGet("{id}")]
         public IActionResult GetById(int id) 
         {
@@ -32,15 +34,50 @@ namespace OtelUçakRezervasyon.Controllers
             return Ok(hotels.ToHotelsDto());
         }
 
+        private async Task<List<HotelImage>> SaveHotelImagesAsync(List<IFormFile> files)
+        {
+            var savedImages = new List<HotelImage>();
+            var folderPath = Path.Combine("wwwroot", "hotel-images");
+
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+
+            foreach (var file in files)
+            {
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                var filePath = Path.Combine(folderPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                savedImages.Add(new HotelImage
+                {
+                    ImageUrl = "/hotel-images/" + fileName
+                });
+            }
+
+            return savedImages;
+        }
+
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
-
-        public IActionResult Create([FromBody] CreateHotelsDto hotelDto)
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> Create([FromForm] CreateHotelsDto hotelDto)
         {
-            var hotelsModel=hotelDto.ToHotelCreateDto();
-            _context.Hotel.Add(hotelsModel);
-            _context.SaveChanges();
-            return Ok(hotelDto);
+            var hotelModel = hotelDto.ToHotelCreateDto();
+
+            if (hotelDto.Images != null && hotelDto.Images.Any())
+            {
+                var savedImages = await SaveHotelImagesAsync(hotelDto.Images);
+                hotelModel.Images = savedImages;
+            }
+
+            _context.Hotel.Add(hotelModel);
+            await _context.SaveChangesAsync();
+            return Ok("Otel ve fotoğraflar başarıyla eklendi.");
         }
 
 

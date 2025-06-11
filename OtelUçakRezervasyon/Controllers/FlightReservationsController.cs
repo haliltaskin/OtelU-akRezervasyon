@@ -43,9 +43,8 @@ namespace OtelUçakRezervasyon.Controllers
         {
             if (!IsValidTcKimlikNo(dto.TcKimlikNo))
                 return BadRequest("Geçersiz T.C. Kimlik Numarası. 11 haneli ve sadece rakamlardan oluşmalıdır.");
+
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized("Kullanıcı bilgisi alınamadı.");
 
@@ -57,6 +56,7 @@ namespace OtelUçakRezervasyon.Controllers
             if (flight == null || flight.AvailableSeats < dto.UcakKisiSayisi)
                 return BadRequest("Uçuş mevcut değil veya yeterli koltuk yok.");
 
+            // ✅ Uçuş rezervasyonu oluştur
             var reservation = new FlightReservation
             {
                 FlightId = dto.FlightId,
@@ -70,11 +70,25 @@ namespace OtelUçakRezervasyon.Controllers
                 DogumTarihi = dto.DogumTarihi
             };
 
+            // ✅ Koltuk sayısını azalt
             flight.AvailableSeats -= dto.UcakKisiSayisi;
 
             _context.FlightsReservations.Add(reservation);
+
+            // ✅ Onaylı sipariş geçmişine ekle
+            var confirmed = new ConfirmedReservation
+            {
+                UserId = userId,
+                ItemType = "Flight",
+                FlightId = dto.FlightId,
+                HotelId = null,
+                Price = reservation.TotalPrice
+            };
+            _context.ConfirmedReservations.Add(confirmed);
+
             await _context.SaveChangesAsync();
 
+            // ✅ E-posta gönder
             var subject = "Uçuş Rezervasyonu Alındı";
             var body = $"Sayın {user.FullName},<br/><br/>" +
                        $"{flight.DepartureCity} → {flight.ArrivalCity} uçuşunuz için {dto.UcakKisiSayisi} kişilik rezervasyonunuz alınmıştır.<br/><br/>" +
@@ -82,8 +96,9 @@ namespace OtelUçakRezervasyon.Controllers
 
             await _emailService.SendEmailAsync(user.Email, subject, body);
 
-            return Ok("Rezervasyon başarıyla yapıldı ve e-posta gönderildi.");
+            return Ok("Rezervasyon başarıyla yapıldı, siparişe eklendi ve e-posta gönderildi.");
         }
+
 
         [HttpGet("my")]
         [Authorize]

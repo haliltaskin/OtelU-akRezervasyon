@@ -19,6 +19,12 @@ namespace OtelUçakRezervasyon.Data
         public DbSet<AppUser> Users { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<City> Cities { get; set; }
+        public DbSet<HotelComment> HotelComments { get; set; }
+        public DbSet<Room> Rooms { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<ConfirmedReservation> ConfirmedReservations { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
